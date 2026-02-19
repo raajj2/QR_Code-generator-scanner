@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="text-center mb-5 fw-bold">Dashboard</h3>
+
+<!-- =========================
+     STATS SECTION
+========================= -->
+
+<div class="row g-4 mb-5">
+
+    <div class="col-md-6">
+        <div class="glass p-4 text-center shadow">
+            <h5>Total QR Generated</h5>
+            <h2 id="qrCount" class="fw-bold display-6">
+                {{ total_qr }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="glass p-4 text-center shadow">
+            <h5>Total Scans</h5>
+            <h2 id="scanCount" class="fw-bold display-6">
+                {{ total_scans }}
+            </h2>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- =========================
+     QR HISTORY
+========================= -->
+
+<h4 class="mb-4">QR Generation History</h4>
+
+<div class="row g-4">
+
+{% for item in history %}
+<div class="col-md-4">
+    <div class="glass p-3 shadow fade-in">
+
+        <img src="{{ url_for('static', filename='qr_codes/' + item.filename) }}"
+             class="img-fluid mb-3">
+
+        <p class="small text-break">
+            <strong>Data:</strong><br>
+            {{ item.data }}
+        </p>
+
+        <p class="text-muted small">
+            {{ item.time }}
+        </p>
+
+        <div class="d-grid gap-2">
+
+            <a href="{{ url_for('download', filename=item.filename) }}"
+               class="btn btn-success btn-sm">
+                Download PNG
+            </a>
+
+            <a href="{{ url_for('download', filename=item.filename.replace('.png','.svg')) }}"
+               class="btn btn-secondary btn-sm">
+                Download SVG
+            </a>
+
+            <a href="{{ url_for('download_zip', filename=item.filename) }}"
+               class="btn btn-warning btn-sm">
+                Download ZIP
+            </a>
+
+        </div>
+
+    </div>
+</div>
+{% endfor %}
+
+{% if history|length == 0 %}
+<div class="col-12 text-center">
+    <div class="glass p-4">
+        <p>No QR codes generated yet.</p>
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+
+<!-- =========================
+     SCAN HISTORY
+========================= -->
+
+<hr class="my-5">
+
+<h4 class="mb-4">Scan History (Session Based)</h4>
+
+<div class="row g-4">
+
+{% for item in scan_history %}
+<div class="col-md-4">
+    <div class="glass p-3 shadow fade-in">
+
+        <p class="small text-break">
+            <strong>Data:</strong><br>
+            {{ item.data }}
+        </p>
+
+        <p class="text-muted small">
+            {{ item.time }}
+        </p>
+
+        <span class="badge bg-info">
+            {{ item.type|capitalize }}
+        </span>
+
+    </div>
+</div>
+{% endfor %}
+
+{% if scan_history|length == 0 %}
+<div class="col-12 text-center">
+    <div class="glass p-4">
+        <p>No scans yet in this session.</p>
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+
+<!-- =========================
+     ANIMATED COUNTERS
+========================= -->
+
+<script>
+
+function animateValue(id, start, end, duration) {
+
+    if(end === 0) return;
+
+    let range = end - start;
+    let current = start;
+    let increment = end > start ? 1 : -1;
+    let stepTime = Math.abs(Math.floor(duration / range));
+
+    let obj = document.getElementById(id);
+
+    let timer = setInterval(function() {
+        current += increment;
+        obj.textContent = current;
+
+        if (current == end) {
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+
+animateValue("qrCount", 0, {{ total_qr }}, 1200);
+animateValue("scanCount", 0, {{ total_scans }}, 1200);
+
+</script>
+
+{% endblock %}

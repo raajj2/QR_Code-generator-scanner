@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="glass p-4 shadow-lg">
+
+            <h4 class="text-center mb-4 fw-bold">Generate QR Code</h4>
+
+            <form method="POST" enctype="multipart/form-data" id="qrForm">
+
+                <!-- QR TYPE -->
+                <label class="form-label">Select QR Type</label>
+                <select name="qr_type" class="form-select mb-3" id="qrType" onchange="showFields()">
+                    <option value="text">Text</option>
+                    <option value="website">Website</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Phone</option>
+                    <option value="wifi">WiFi</option>
+                    <option value="vcard">vCard</option>
+                    <option value="file">File Upload</option>
+                </select>
+
+                <!-- TEXT -->
+                <div id="textField" class="mb-3">
+                    <input type="text" name="text" class="form-control"
+                        placeholder="Enter text">
+                </div>
+
+                <!-- WEBSITE -->
+                <div id="websiteField" class="mb-3 d-none">
+                    <input type="text" name="website" class="form-control"
+                        placeholder="Enter website URL">
+                </div>
+
+                <!-- EMAIL -->
+                <div id="emailField" class="mb-3 d-none">
+                    <input type="email" name="email" class="form-control"
+                        placeholder="Enter email">
+                </div>
+
+                <!-- PHONE -->
+                <div id="phoneField" class="mb-3 d-none">
+                    <input type="text" name="phone" class="form-control"
+                        placeholder="Enter phone number">
+                </div>
+
+                <!-- WIFI -->
+                <div id="wifiField" class="d-none">
+                    <input type="text" name="ssid"
+                        class="form-control mb-2"
+                        placeholder="WiFi Name (SSID)">
+                    <input type="text" name="password"
+                        class="form-control mb-3"
+                        placeholder="WiFi Password">
+                </div>
+
+                <!-- VCARD -->
+                <div id="vcardField" class="d-none">
+                    <input type="text" name="name"
+                        class="form-control mb-2"
+                        placeholder="Full Name">
+                    <input type="text" name="vphone"
+                        class="form-control mb-2"
+                        placeholder="Phone">
+                    <input type="email" name="vemail"
+                        class="form-control mb-3"
+                        placeholder="Email">
+                </div>
+
+                <!-- FILE -->
+                <div id="fileField" class="mb-3 d-none">
+                    <input type="file" name="file" class="form-control">
+                </div>
+
+                <!-- LOGO -->
+                <label class="form-label">Upload Logo (Optional)</label>
+                <input type="file" name="logo"
+                    class="form-control mb-3">
+
+                <!-- COLORS -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>QR Color</label>
+                        <input type="color"
+                            name="fill_color"
+                            value="#000000"
+                            class="form-control mb-3">
+                    </div>
+                    <div class="col-md-6">
+                        <label>Background Color</label>
+                        <input type="color"
+                            name="back_color"
+                            value="#ffffff"
+                            class="form-control mb-3">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100">
+                    Generate QR
+                </button>
+
+            </form>
+
+            <!-- LIVE PREVIEW -->
+            <div class="mt-4 text-center">
+                <h6>Live Preview</h6>
+                <div id="livePreview" class="mt-2"></div>
+            </div>
+
+            {% if qr_image %}
+            <hr>
+            <div class="text-center fade-in">
+
+                <h5 class="mb-3">Generated QR Code</h5>
+
+                <img src="{{ url_for('static', filename='qr_codes/' + qr_image) }}"
+                    class="img-fluid mb-3"
+                    width="250">
+
+                <div class="d-grid gap-2">
+
+                    <a href="{{ url_for('download', filename=qr_image) }}"
+                        class="btn btn-success">
+                        Download PNG
+                    </a>
+
+                    <a href="{{ url_for('download', filename=qr_image.replace('.png','.svg')) }}"
+                        class="btn btn-secondary">
+                        Download SVG
+                    </a>
+
+                    <a href="{{ url_for('download_zip', filename=qr_image) }}"
+                        class="btn btn-warning">
+                        Download ZIP (PNG + SVG)
+                    </a>
+
+                </div>
+
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- ===========================
+     JAVASCRIPT
+=========================== -->
+
+<script>
+
+function showFields() {
+    let type = document.getElementById("qrType").value;
+
+    let fields = [
+        "textField",
+        "websiteField",
+        "emailField",
+        "phoneField",
+        "wifiField",
+        "vcardField",
+        "fileField"
+    ];
+
+    fields.forEach(id => {
+        document.getElementById(id).classList.add("d-none");
+    });
+
+    if(type === "text") document.getElementById("textField").classList.remove("d-none");
+    if(type === "website") document.getElementById("websiteField").classList.remove("d-none");
+    if(type === "email") document.getElementById("emailField").classList.remove("d-none");
+    if(type === "phone") document.getElementById("phoneField").classList.remove("d-none");
+    if(type === "wifi") document.getElementById("wifiField").classList.remove("d-none");
+    if(type === "vcard") document.getElementById("vcardField").classList.remove("d-none");
+    if(type === "file") document.getElementById("fileField").classList.remove("d-none");
+}
+
+
+/* ===========================
+   LIVE PREVIEW
+=========================== */
+
+document.getElementById("qrForm").addEventListener("input", function(){
+
+    let type = document.getElementById("qrType").value;
+    let data = "";
+
+    if(type === "text")
+        data = document.querySelector("input[name=text]").value;
+
+    if(type === "website")
+        data = document.querySelector("input[name=website]").value;
+
+    if(type === "email")
+        data = "mailto:" + document.querySelector("input[name=email]").value;
+
+    if(type === "phone")
+        data = "tel:" + document.querySelector("input[name=phone]").value;
+
+    if(data && data.length > 2){
+        document.getElementById("livePreview").innerHTML =
+        `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data)}">`;
+    } else {
+        document.getElementById("livePreview").innerHTML = "";
+    }
+
+});
+
+</script>
+
+{% endblock %}
